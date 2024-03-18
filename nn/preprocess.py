@@ -22,14 +22,18 @@ def sample_seqs(seqs: List[str], labels: List[bool]) -> Tuple[List[str], List[bo
     """
     n=len(seqs)
     positives=[seqs[i] for i in range(n) if labels[i]==True]
-    negatives=set(seqs)-set(positives)
+    negatives=list(set(seqs)-set(positives))
     n_sample=int(n*0.8)
     pos_idx=np.random.randint(0,len(positives),n_sample)
     neg_idx=np.random.randint(0,len(negatives),n_sample)
-    sample_pos=positives[pos_idx]
-    sample_neg=positives[neg_idx]
-    sample=sample_pos+sample_neg
-    sample_bools=[True]*n_sample+[False]*n_sample
+    sample_pos=[positives[x] for x in pos_idx]
+    sample_neg=[negatives[x] for x in neg_idx]
+    sample_unshuffled=sample_pos+sample_neg
+    sample_bools_unshuffled=[True]*n_sample+[False]*n_sample
+    shuffle_idx=np.arange(len(sample_unshuffled))
+    np.random.shuffle(shuffle_idx)
+    sample=[sample_unshuffled[x] for x in shuffle_idx]
+    sample_bools=[sample_bools_unshuffled[x] for x in shuffle_idx]
     return[sample, sample_bools]
     
     
@@ -54,10 +58,17 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
             Then, AGA -> [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0].
     """
     base_onehot={"A":[1,0,0,0],
-                 "T":[0,1,0,0],
-                 "C":[0,0,1,0],
-                 "G":[0,0,0,1]}
-    encoding=[]
-    for base in seq_arr:
-        encoding.extend(base_onehot[base.upper()])
+                    "T":[0,1,0,0],
+                    "C":[0,0,1,0],
+                    "G":[0,0,0,1]}
+    longest_seq=max([len(s) for s in seq_arr])
+    encoding=np.zeros((len(seq_arr),longest_seq*4))
+    # encodings_l=[]
+    for k,seq in enumerate(seq_arr):
+        encoding_single=[]
+        for i,base in enumerate(seq):
+            encoding_single.extend(base_onehot[base.upper()])
+        encoding[k,0:4*(i+1)]=encoding_single
+        #encodings_l.append(encoding_single)
+    #encoding=np.array(encodings_l,dtype=object)
     return encoding

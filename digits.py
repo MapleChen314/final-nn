@@ -21,6 +21,7 @@ test_idx=set(range(len(X)))-set(train_idx)
 test_X=np.array(X.iloc[list(test_idx),:])
 test_y=np.array(y_onehot[list(test_idx)])
 
+
 #Initialize NN
 NNet=nn.NeuralNetwork(
     nn_arch=[{'input_dim':64,'output_dim':16,'activation':"sigmoid"},{'input_dim':16,'output_dim':64,'activation':"relu"},{'input_dim':64,'output_dim':10,"activation":"sigmoid"}],

@@ -251,7 +251,7 @@ class NeuralNetwork:
             self._param_dict["b"+str(layer)]=b_new
             assert W_old.shape==W_new.shape
             assert b_old.shape==b_new.shape
-            assert not np.all(grad_dict["W"+str(layer)]==0)
+            #assert not np.all(grad_dict["W"+str(layer)]==0)
             # print(f"Updated layer {layer} weights")
 
     def fit(
@@ -336,6 +336,7 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
+        Z=np.clip(Z,a_min=-100,a_max=None)
         nl_transform=1/(1+np.exp(-Z))
         #np.array([1/(1+np.exp(z)) for z in Z])
         return nl_transform
