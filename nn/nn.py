@@ -214,9 +214,9 @@ class NeuralNetwork:
             dA_curr=self._binary_cross_entropy_backprop(y,y_hat)
         elif self._loss_func=="MSE":
             dA_curr=self._mean_squared_error_backprop(y,y_hat)
-        print(f"Last layer dA_curr has shape {dA_curr.shape}\n")
+        #print(f"Last layer dA_curr has shape {dA_curr.shape}\n")
         #dZ=self._sigmoid_backprop(dA_curr,Z_curr)
-        grad_dict["W"+str(len(self.arch))]=dA_curr.dot(cache["A"+str(len(self.arch))].T)
+        grad_dict["W"+str(len(self.arch))]=dA_curr.dot(cache["A"+str(len(self.arch)-1)].T)
         grad_dict["b"+str(len(self.arch))]=np.sum(dA_curr,axis=1,keepdims=True)
         for i in range(1,len(self.arch)):         
             layer=len(self.arch)-i #should range from 1 to #layers -1
@@ -229,7 +229,7 @@ class NeuralNetwork:
             grad_dict["W"+str(layer)]=dW_curr
             grad_dict["b"+str(layer)]=db_curr
             dA_curr=dA_prev
-            print(f"Next layer dA_curr has shape {dA_curr.shape}")
+            #print(f"Next layer dA_curr has shape {dA_curr.shape}")
         return grad_dict
             
 
@@ -251,6 +251,8 @@ class NeuralNetwork:
             self._param_dict["b"+str(layer)]=b_new
             assert W_old.shape==W_new.shape
             assert b_old.shape==b_new.shape
+            assert not np.all(grad_dict["W"+str(layer)]==0)
+            # print(f"Updated layer {layer} weights")
 
     def fit(
         self,
@@ -289,17 +291,21 @@ class NeuralNetwork:
             y_hat_batch,cache=self.forward(X_batch)
             assert y_batch.shape==y_hat_batch.shape
             grad_dict=self.backprop(y_batch,y_hat_batch,cache)
+            # for i,entry in enumerate(grad_dict):
+            #     print(f"{entry} : {grad_dict[entry].shape}")
             self._update_params(grad_dict)
             y_hat_val=self.predict(X_val.T)
-            assert y_hat_val.shape[0]==1
+            y_hat_val=y_hat_val.T
+            assert y_val.shape==y_hat_val.shape
             if self._loss_func=="BCE":
-                train_error.append(self._binary_cross_entropy(y_batch,y_hat_batch))
-                val_error.append(self._binary_cross_entropy(y_val,y_hat_val))
+                train_error_entry=self._binary_cross_entropy(y_batch,y_hat_batch)
+                val_error_entry=self._binary_cross_entropy(y_val,y_hat_val)
             elif self._loss_func=="MSE":
-                train_error.append(self._mean_squared_error(y_batch,y_hat_batch))
-                val_error.append(self._mean_squared_error(y_val,y_hat_val))
-            self._update_params
-            print(f"Done with iteration {iteration}")
+                train_error_entry=self._mean_squared_error(y_batch,y_hat_batch)
+                val_error_entry=self._mean_squared_error(y_val,y_hat_val)
+            train_error.append(train_error_entry)
+            val_error.append(val_error_entry)
+            print(f"Done with iteration {iteration}. Train error: {round(train_error_entry,2)} Val error: {round(val_error_entry,2)}")
         return (train_error,val_error)
             
 
@@ -330,7 +336,8 @@ class NeuralNetwork:
             nl_transform: ArrayLike
                 Activation function output.
         """
-        nl_transform=np.array([1/(1+np.exp(z)) for z in Z])
+        nl_transform=1/(1+np.exp(-Z))
+        #np.array([1/(1+np.exp(z)) for z in Z])
         return nl_transform
 
     def _sigmoid_backprop(self, dA: ArrayLike, Z: ArrayLike):
@@ -401,6 +408,7 @@ class NeuralNetwork:
         """
         n=len(y_hat)
         y_hat[y_hat==0]=1e-10
+        y_hat[y_hat==1]=1-1e-10
         #loss=(-1/n)*sum(sum([yi*np.log(yhi)+(1-yi)*np.log(yhi) for yi,yhi in zip(y,y_hat)]))
         loss=-np.mean(y * np.log2(y_hat) + (1 - y) * np.log2(1 - y_hat))
         return loss
@@ -421,6 +429,7 @@ class NeuralNetwork:
         """
         n=len(y_hat)
         y_hat[y_hat==0]=1e-10
+        y_hat[y_hat==1]=1-1e-10
         dA=(-1/n)*(y/y_hat - (1-y)/(1-y_hat))
         return dA
 
