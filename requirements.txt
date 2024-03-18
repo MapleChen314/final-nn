@@ -1,0 +1,6 @@
+pytest
+numpy
+matplotlib
+scikit-learn
+typing
+ucimlrepo
