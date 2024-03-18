@@ -1,4 +1,4 @@
-from nn import nn
+from nn import nn, preprocess
 import numpy as np
 import sklearn
 from typing import List, Dict, Tuple, Union
@@ -85,7 +85,7 @@ def test_binary_cross_entropy():
         seed=37,
         batch_size=2,
         epochs=10,
-        loss_function="MSE"
+        loss_function="BCE"
     )
     y_hat=np.array([[0.1,0.6,0.2]])
     y=np.array([[0,1,0]])
@@ -94,16 +94,64 @@ def test_binary_cross_entropy():
     assert round(BCE_NN,2) == BCE
 
 def test_binary_cross_entropy_backprop():
-    pass
+    NNet=nn.NeuralNetwork(
+        nn_arch=[{'input_dim':3,'output_dim':2,'activation':"relu"},{'input_dim':2,'output_dim':3,'activation':"sigmoid"},{'input_dim':3,'output_dim':1,'activation':"relu"}],
+        lr=0.001,
+        seed=37,
+        batch_size=2,
+        epochs=10,
+        loss_function="BCE"
+    )
+    X_train=np.array([[7,4,8],[0,2,1],[-2,6,1]])
+    y_train=np.array([[0,1,1]]).T
+    X_val=np.array([[5,4,3],[0,0,5]])
+    y_val=np.array([[0,1]]).T
+    (train_error,val_error)=NNet.fit(X_train,y_train,X_val,y_val)
+    assert train_error[0] > train_error[-1]
 
 def test_mean_squared_error():
-    pass
+    NNet=nn.NeuralNetwork(
+        nn_arch=[{'input_dim':3,'output_dim':2,'activation':"relu"},{'input_dim':2,'output_dim':3,'activation':"sigmoid"},{'input_dim':3,'output_dim':1,'activation':"relu"}],
+        lr=0.001,
+        seed=37,
+        batch_size=2,
+        epochs=10,
+        loss_function="MSE"
+    )
+    y_hat=np.array([[1.1,3.5,9]])
+    y=np.array([[2,4,8]])
+    MSE=0.69
+    MSE_NN=NNet._mean_squared_error(y,y_hat)
+    assert round(MSE_NN,2) == MSE
 
 def test_mean_squared_error_backprop():
-    pass
+    NNet=nn.NeuralNetwork(
+        nn_arch=[{'input_dim':3,'output_dim':2,'activation':"relu"},{'input_dim':2,'output_dim':3,'activation':"sigmoid"},{'input_dim':3,'output_dim':1,'activation':"relu"}],
+        lr=0.0001,
+        seed=18,
+        batch_size=2,
+        epochs=10,
+        loss_function="MSE"
+    )
+    X_train=np.array([[7,4,8],[0,2,1],[-2,6,1]])
+    y_train=np.array([[0,1,1]]).T
+    X_val=np.array([[5,4,3],[0,0,5]])
+    y_val=np.array([[0,1]]).T
+    (train_error,val_error)=NNet.fit(X_train,y_train,X_val,y_val)
+    assert train_error[0] > train_error[-1]
 
 def test_sample_seqs():
-    pass
+    seqs=["ACTG","GTAGA","ACAGTATA","GAT","GACACATATA"]
+    bools=[True,False,False,False,False]
+    [balanced_seqs,balanced_bools]=preprocess.sample_seqs(seqs,bools)
+    assert len(balanced_seqs)==4
+    assert sum(balanced_bools)==len(balanced_bools)/2
+    
 
 def test_one_hot_encode_seqs():
-    pass
+    seqs=["ACTG","GTAGA","ACAGTATA","GAT","GACACATATA"]
+    bools=[True,False,False,False,False]
+    [balanced_seqs,balanced_bools]=preprocess.sample_seqs(seqs,bools)
+    seqs_one_hot=preprocess.one_hot_encode_seqs(balanced_seqs)
+    assert seqs_one_hot.shape[0]==len(balanced_seqs)
+    assert seqs_one_hot.shape[1]==40

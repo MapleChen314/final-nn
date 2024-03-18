@@ -23,7 +23,7 @@ def sample_seqs(seqs: List[str], labels: List[bool]) -> Tuple[List[str], List[bo
     n=len(seqs)
     positives=[seqs[i] for i in range(n) if labels[i]==True]
     negatives=list(set(seqs)-set(positives))
-    n_sample=int(n*0.8)
+    n_sample=int(n/2)
     pos_idx=np.random.randint(0,len(positives),n_sample)
     neg_idx=np.random.randint(0,len(negatives),n_sample)
     sample_pos=[positives[x] for x in pos_idx]

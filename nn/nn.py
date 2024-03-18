@@ -449,7 +449,7 @@ class NeuralNetwork:
                 Average loss of mini-batch.
         """
         n=len(y_hat)
-        loss=(1/n)*sum(sum([(yi-yhi)**2 for yi,yhi in zip(y,y_hat)]))
+        loss=np.mean((y-y_hat)**2)
         return loss
 
     def _mean_squared_error_backprop(self, y: ArrayLike, y_hat: ArrayLike) -> ArrayLike:
