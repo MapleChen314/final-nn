@@ -20,7 +20,19 @@ def sample_seqs(seqs: List[str], labels: List[bool]) -> Tuple[List[str], List[bo
         sampled_labels: List[bool]
             List of labels for the sampled sequences
     """
-    pass
+    n=len(seqs)
+    positives=[seqs[i] for i in range(n) if labels[i]==True]
+    negatives=set(seqs)-set(positives)
+    n_sample=int(n*0.8)
+    pos_idx=np.random.randint(0,len(positives),n_sample)
+    neg_idx=np.random.randint(0,len(negatives),n_sample)
+    sample_pos=positives[pos_idx]
+    sample_neg=positives[neg_idx]
+    sample=sample_pos+sample_neg
+    sample_bools=[True]*n_sample+[False]*n_sample
+    return[sample, sample_bools]
+    
+    
 
 def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
     """
@@ -41,4 +53,11 @@ def one_hot_encode_seqs(seq_arr: List[str]) -> ArrayLike:
                 G -> [0, 0, 0, 1]
             Then, AGA -> [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0].
     """
-    pass
+    base_onehot={"A":[1,0,0,0],
+                 "T":[0,1,0,0],
+                 "C":[0,0,1,0],
+                 "G":[0,0,0,1]}
+    encoding=[]
+    for base in seq_arr:
+        encoding.extend(base_onehot[base.upper()])
+    return encoding
